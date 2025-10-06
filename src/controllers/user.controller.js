@@ -93,7 +93,7 @@ const login = async (req, res) => {
       fs.readFile(usersDb, "utf8", async (err, data) => {
         if (err) {
           res.writeHead(500, { "Content-type": "text/plain" });
-          return res.end("Error connecting to dataBase");
+          return res.end("Error connecting to users dataBase");
         }
         let users = data ? JSON.parse(data) : [];
         const user = users.find((u) => u.email === email);
@@ -109,13 +109,35 @@ const login = async (req, res) => {
           res.writeHead(500, { "Content-type": "text/plain" });
           return res.end("Password does not match");
         }
+        delete user.hashedPassword;
         const token = generateToken();
-        // const tokenData = {
-        //   token,
-        //   user,
-        //   generatedAt : new Date().getTimezoneOffset(),
-        // }
-        // fs.appendFile(tokensDb , 1)
+        const tokenData = {
+          token,
+          user,
+          generatedAt: Date.now(),
+          expiresIn: 24 * 60 * 60 * 1000,
+        };
+        fs.readFile(tokensDb, "utf8", (err, data) => {
+          if (err) {
+            res.writeHead(500, { "Content-type": "application/json" });
+            res.end("Error connecting to tokens dataBase");
+          }
+          const tokens = data ? JSON.parse(data) : [];
+          tokens.push(tokenData);
+          fs.writeFile(tokensDb, JSON.stringify(tokens, null, 2), (err) => {
+            if (err) {
+              res.writeHead(500, { "Content-type": "application/json" });
+              res.end("Error connecting to tokens dataBase");
+            }
+            res.writeHead(200, {
+              "Content-type": "application/json",
+              "set-cookie": `sessionId=${token}; Max-Age=${
+                tokenData.expiresIn / 1000
+              }`,
+            });
+            res.end(JSON.stringify({ message: "User logged in", user }));
+          });
+        });
       });
     });
   } catch (error) {
