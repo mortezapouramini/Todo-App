@@ -122,13 +122,14 @@ const login = async (req, res) => {
             res.writeHead(500, { "Content-type": "application/json" });
             res.end("Error connecting to tokens dataBase");
           }
-          const tokens = data ? JSON.parse(data) : [];
+          let tokens = data ? JSON.parse(data) : [];
           tokens.push(tokenData);
           fs.writeFile(tokensDb, JSON.stringify(tokens, null, 2), (err) => {
             if (err) {
               res.writeHead(500, { "Content-type": "application/json" });
               res.end("Error connecting to tokens dataBase");
             }
+            userEmitter.emit('userLoggedIn' , user)
             res.writeHead(200, {
               "Content-type": "application/json",
               "set-cookie": `sessionId=${token}; Max-Age=${
