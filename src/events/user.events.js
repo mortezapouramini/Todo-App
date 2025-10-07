@@ -4,9 +4,9 @@ const path = require("path");
 const usersLogFile = path.join(__dirname, "../logs/user.logs.log");
 const userEmitter = new EventEmitter();
 
-function logUserEvent(eventName, user) {
+function logUserEvent(log, user) {
   const logData = {
-    message: eventName,
+    log,
     user,
   };
 
@@ -21,7 +21,7 @@ function logUserEvent(eventName, user) {
       if (err) {
         console.error("Failed to update log:", err);
       } else {
-        console.log(`[LOG] ${eventName} successfully logged.`);
+        console.log(`[LOG] ${log} successfully logged.`);
       }
     });
   });
@@ -31,5 +31,7 @@ userEmitter.on("userRegistered", (user) =>
   logUserEvent("User registered", user)
 );
 userEmitter.on("userLoggedIn", (user) => logUserEvent("User logged in", user));
-
+userEmitter.on("userLoggedout", (user) => {
+  logUserEvent("User logged out", user);
+});
 module.exports = userEmitter;
