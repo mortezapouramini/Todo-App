@@ -6,7 +6,7 @@ const userRoutes = (req, res) => {
   } else if (req.url === "/auth/login" && req.method.toLowerCase() === "post") {
     userController.login(req, res);
   } else if (req.url === "/auth/logout" && req.method.toLowerCase() === "get") {
-    // logout controller
+    userController.logOut(req, res);
   } else {
     res.writeHead(404, { "Content-type": "text/plain" });
     return res.end("Not found");

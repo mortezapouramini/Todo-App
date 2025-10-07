@@ -152,4 +152,44 @@ const login = (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const logOut = (req, res) => {
+  const cookies = req.headers?.cookie;
+  let parsedCookie = {};
+  if (cookies) {
+    cookies.split(";").forEach((cookie) => {
+      const [key, value] = cookie.trim().split("=");
+      parsedCookie[key] = value;
+    });
+  }
+
+  const sessionId = parsedCookie.sessionId;
+  if (!sessionId) {
+    res.writeHead(401, { "Content-type": "text/plain" });
+    return res.end("Please login");
+  }
+  fs.readFile(sessionsDb, "utf8", (err, data) => {
+    if (err) {
+      res.writeHead(500, { "Content-type": "text/plain" });
+      return res.end("Internal server error");
+    }
+    let sessions = data ? JSON.parse(data) : [];
+    if (sessions.length === 0) {
+      res.writeHead(401, { "Content-type": "text/plain" });
+      return res.end("Please login");
+    }
+    sessions = sessions.filter((s) => s.sessionId !== sessionId);
+    fs.writeFile(sessionsDb, JSON.stringify(sessions, null, 2), (err) => {
+      if (err) {
+        res.writeHead(500, { "Content-type": "text/plain" });
+        return res.end("Internal server error");
+      }
+      res.writeHead(200, {
+        "Content-type": "text/plain",
+        "set-cookie": "sessionId=; Max-Age=0;",
+      });
+      res.end("log out successful");
+    });
+  });
+};
+
+module.exports = { register, login, logOut };
