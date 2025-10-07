@@ -1,13 +1,12 @@
 const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
-const { json } = require("stream/consumers");
-const generateToken = require("../utils/token");
 const userEmitter = require("../events/user.events");
+const generateSessionId = require("../utils/session.utils");
 const usersDb = path.join(__dirname, "../../users.json");
-const tokensDb = path.join(__dirname, "../../tokens.json");
+const sessionsDb = path.join(__dirname, "../../sessions.json");
 
-const register = async (req, res) => {
+const register = (req, res) => {
   let body = "";
   const contentType = req.headers["content-type"];
 
@@ -50,7 +49,7 @@ const register = async (req, res) => {
         fs.writeFile(usersDb, JSON.stringify(users, null, 2), (err) => {
           if (err) {
             res.writeHead(500, { "Content-type": "text/plain" });
-            res.end("Error registering");
+            return res.end("Error registering");
           }
           delete newUser.hashedPassword;
           userEmitter.emit("userRegistered", newUser);
@@ -65,7 +64,7 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+const login = (req, res) => {
   const contentType = req.headers["content-type"];
   let body = "";
 
@@ -110,30 +109,36 @@ const login = async (req, res) => {
           return res.end("Password does not match");
         }
         delete user.hashedPassword;
-        const token = generateToken();
-        const tokenData = {
-          token,
+        let sessionId;
+        try {
+          sessionId = await generateSessionId();
+        } catch (error) {
+          res.writeHead(500, { "Content-type": "text/plain" });
+          return res.end("Internal server error");
+        }
+        const sessionData = {
+          sessionId,
           user,
           generatedAt: Date.now(),
           expiresIn: 24 * 60 * 60 * 1000,
         };
-        fs.readFile(tokensDb, "utf8", (err, data) => {
+        fs.readFile(sessionsDb, "utf8", (err, data) => {
           if (err) {
             res.writeHead(500, { "Content-type": "application/json" });
-            res.end("Error connecting to tokens dataBase");
+            return res.end("Error connecting to tokens dataBase");
           }
-          let tokens = data ? JSON.parse(data) : [];
-          tokens.push(tokenData);
-          fs.writeFile(tokensDb, JSON.stringify(tokens, null, 2), (err) => {
+          let sessions = data ? JSON.parse(data) : [];
+          sessions.push(sessionData);
+          fs.writeFile(sessionsDb, JSON.stringify(sessions, null, 2), (err) => {
             if (err) {
               res.writeHead(500, { "Content-type": "application/json" });
-              res.end("Error connecting to tokens dataBase");
+              return res.end("Error connecting to tokens dataBase");
             }
-            userEmitter.emit('userLoggedIn' , user)
+            userEmitter.emit("userLoggedIn", user);
             res.writeHead(200, {
               "Content-type": "application/json",
-              "set-cookie": `sessionId=${token}; Max-Age=${
-                tokenData.expiresIn / 1000
+              "set-cookie": `sessionId=${sessionId}; Max-Age=${
+                sessionData.expiresIn / 1000
               }`,
             });
             res.end(JSON.stringify({ message: "User logged in", user }));
