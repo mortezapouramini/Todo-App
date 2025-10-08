@@ -20,6 +20,10 @@ const register = (req, res) => {
       body += chunk.toString();
     });
     req.on("end", () => {
+      if (!body) {
+        res.writeHead(401, { "Content-type": "text/plain" });
+        return res.end("Please fill out the forms.");
+      }
       const { email, name, password } = JSON.parse(body);
       if (
         !email.endsWith("@gmail.com") ||
@@ -177,17 +181,17 @@ const logOut = (req, res) => {
       res.writeHead(401, { "Content-type": "text/plain" });
       return res.end("Please login");
     }
-    const user = sessions.find(s => s.sessionId === sessionId)
+    const user = sessions.find((s) => s.sessionId === sessionId);
     sessions = sessions.filter((s) => s.sessionId !== sessionId);
     fs.writeFile(sessionsDb, JSON.stringify(sessions, null, 2), (err) => {
       if (err) {
         res.writeHead(500, { "Content-type": "text/plain" });
         return res.end("Internal server error");
       }
-      delete user.sessionId
-      delete user.generatedAt
-      delete user.expiresIn
-      userEmitter.emit('userLoggedout' , user)
+      delete user.sessionId;
+      delete user.generatedAt;
+      delete user.expiresIn;
+      userEmitter.emit("userLoggedout", user);
       res.writeHead(200, {
         "Content-type": "text/plain",
         "set-cookie": "sessionId=; Max-Age=0;",
