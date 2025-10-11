@@ -8,7 +8,7 @@ const addTask = (req, res, session) => {
     res.writeHead(400, { "Content-type": "text/plain" });
     res.end("Bad request");
   }
-  let body;
+  let body = ""
   try {
     req.on("data", (chunk) => {
       body += chunk.toString();
@@ -19,7 +19,7 @@ const addTask = (req, res, session) => {
         res.end("Bad request");
       }
       const { name, desc, dueDate, priority, category } = JSON.parse(body);
-      if ((!name || desc.length > 30, !dueDate, !priority, !category)) {
+      if ((!name || desc.length > 30 || !dueDate || !priority || !category)) {
         res.writeHead(400, { "Content-type": "text/plain" });
         return res.end("Invalid info");
       }

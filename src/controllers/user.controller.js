@@ -9,7 +9,6 @@ const sessionsDb = path.join(__dirname, "../../sessions.json");
 const register = async (req, res) => {
   let body = "";
   const contentType = req.headers["content-type"];
-
   if (contentType !== "application/json") {
     res.writeHead(400, { "Content-type": "text/plain" });
     return res.end("Bad request");
@@ -117,7 +116,7 @@ const login = (req, res) => {
       userEmitter.emit("userLoggedIn", user);
       res.writeHead(200, {
         "Content-type": "application/json",
-        "set-cookie": `sessionId=${sessionId}; Max-Age=${
+        "set-cookie": `sessionId=${sessionId}; path=/; Max-Age=${
           sessionData.expiresIn / 1000
         }`,
       });

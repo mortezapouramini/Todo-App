@@ -8,6 +8,7 @@ const userRoutes = async(req, res) => {
     userController.login(req, res);
   } else if (req.url === "/auth/logout" && req.method.toLowerCase() === "get") {
     const session  = await authMiddleware.authSession(req, res)
+    if(!session) return
     userController.logOut(req, res , session);
   } else {
     res.writeHead(404, { "Content-type": "text/plain" });

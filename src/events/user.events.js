@@ -1,30 +1,24 @@
 const EventEmitter = require("events");
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 const usersLogFile = path.join(__dirname, "../logs/user.logs.log");
 const userEmitter = new EventEmitter();
 
-function logUserEvent(log, user) {
+async function logUserEvent(log, user) {
   const logData = {
     log,
     user,
   };
 
-  fs.readFile(usersLogFile, "utf8", (err, data) => {
-    if (err) {
-      console.error("Corrupted log file, starting fresh.");
-    }
+  try {
+    const data = await fs.readFile(usersLogFile, "utf8");
     let logs = data ? JSON.parse(data) : [];
     logs.push(logData);
-
-    fs.writeFile(usersLogFile, JSON.stringify(logs, null, 2), (err) => {
-      if (err) {
-        console.error("Failed to update log:", err);
-      } else {
-        console.log(`[LOG] ${log} successfully logged.`);
-      }
-    });
-  });
+    await fs.writeFile(usersLogFile, JSON.stringify(logs, null, 2));
+    console.log(`[LOG] ${log} successfully logged.`);
+  } catch (error) {
+    console.error("Failed to update log:", error);
+  }
 }
 
 userEmitter.on("userRegistered", (user) =>
