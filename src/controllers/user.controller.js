@@ -129,7 +129,8 @@ const login = (req, res) => {
   }
 };
 
-const logOut = async (req, res , sessionId) => {
+const logOut = async (req, res , session) => {
+  const sessionId = session
   try {
     const data = await fs.promises.readFile(sessionsDb, "utf8");
     let sessions = JSON.parse(data);

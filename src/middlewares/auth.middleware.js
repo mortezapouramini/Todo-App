@@ -42,7 +42,7 @@ const authSession = async (req, res) => {
       return;
     }
 
-    return sessionId
+    return session
   } catch (error) {
     console.error(error);
     res.writeHead(500, { "Content-Type": "application/json" });

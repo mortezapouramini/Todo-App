@@ -7,8 +7,8 @@ const userRoutes = async(req, res) => {
   } else if (req.url === "/auth/login" && req.method.toLowerCase() === "post") {
     userController.login(req, res);
   } else if (req.url === "/auth/logout" && req.method.toLowerCase() === "get") {
-    const sessionId  = await authMiddleware.authSession(req, res)
-    userController.logOut(req, res , sessionId);
+    const session  = await authMiddleware.authSession(req, res)
+    userController.logOut(req, res , session);
   } else {
     res.writeHead(404, { "Content-type": "text/plain" });
     return res.end("Not found");
