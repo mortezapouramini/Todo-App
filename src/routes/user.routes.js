@@ -1,12 +1,14 @@
 const userController = require("../controllers/user.controller");
+const authMiddleware = require('../middlewares/auth.middleware')
 
-const userRoutes = (req, res) => {
+const userRoutes = async(req, res) => {
   if (req.url === "/auth/register" && req.method.toLowerCase() === "post") {
     userController.register(req, res);
   } else if (req.url === "/auth/login" && req.method.toLowerCase() === "post") {
     userController.login(req, res);
   } else if (req.url === "/auth/logout" && req.method.toLowerCase() === "get") {
-    userController.logOut(req, res);
+    const sessionId  = await authMiddleware.authSession(req, res)
+    userController.logOut(req, res , sessionId);
   } else {
     res.writeHead(404, { "Content-type": "text/plain" });
     return res.end("Not found");
