@@ -7,12 +7,11 @@ const authSession = async (req, res) => {
   try {
     const cookies = req.headers?.cookie || "";
     const parsedCookie = {};
-    cookies.split(";").forEach((cookie) => {
+    cookies?.split(";").forEach((cookie) => {
       const [key, value] = cookie.trim().split("=");
       if (key && value) parsedCookie[key] = value;
     });
-
-    const sessionId = parsedCookie.sessionId;
+    const sessionId = parsedCookie?.sessionId;
     if (!sessionId) {
       res.writeHead(401, { "Content-Type": "text/plain" });
       res.end("Please login");
@@ -43,12 +42,12 @@ const authSession = async (req, res) => {
       return;
     }
 
-    req.sessionId = sessionId;
+    return sessionId
   } catch (error) {
     console.error(error);
     res.writeHead(500, { "Content-Type": "application/json" });
-    res.end("Internal server error");
+    res.end(JSON.stringify({error : error.message}));
   }
 };
 
-module.exports = authSession;
+module.exports = {authSession};
