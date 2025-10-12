@@ -4,12 +4,14 @@ const authMiddleware = require("../middlewares/auth.middleware");
 const taskRoutes = async (req, res) => {
   if (req.method.toLowerCase() === "post") {
     const session = await authMiddleware.authSession(req, res);
-    if(!session) return
+    if (!session) return;
     taskController.addTask(req, res, session);
   } else if (req.method.toLowerCase() === "patch") {
     // update task
   } else if (req.method.toLowerCase() === "delete") {
-    // delete task
+    const session = await authMiddleware.authSession(req, res);
+    if (!session) return;
+    taskController.deleteTask(req, res, session);
   } else if (req.method.toLowerCase() === "get") {
     // get tasks
   } else {

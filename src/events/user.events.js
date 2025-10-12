@@ -1,7 +1,7 @@
 const EventEmitter = require("events");
 const fs = require("fs").promises;
 const path = require("path");
-const usersLogFile = path.join(__dirname, "../logs/user.logs.log");
+const usersLogFile = path.join(__dirname, "../logs/auth.logs.log");
 const userEmitter = new EventEmitter();
 
 async function logUserEvent(log, user) {

@@ -129,13 +129,13 @@ const login = (req, res) => {
 };
 
 const logOut = async (req, res , session) => {
-  const sessionId = session
+  const sessionId = session.sessionId
+  const user = session.user
   try {
     const data = await fs.promises.readFile(sessionsDb, "utf8");
     let sessions = JSON.parse(data);
-    const user = sessions.find((s) => s.sessionId === sessionId);
-    sessions = sessions.filter((s) => s.sessionId !== sessionId);
-    await fs.promises.writeFile(sessionsDb, JSON.stringify(sessions, null, 2));
+    const filteredSessions = sessions.filter((s) => s.sessionId !== sessionId);
+    await fs.promises.writeFile(sessionsDb, JSON.stringify(filteredSessions, null, 2));
     delete user.sessionId;
     delete user.generatedAt;
     delete user.expiresIn;
@@ -146,6 +146,7 @@ const logOut = async (req, res , session) => {
     });
     res.end("log out successful");
   } catch (error) {
+    console.error(error)
     res.writeHead(500, { "Content-type": "text/plain" });
     res.end(JSON.stringify({error : error.message}));
   }
