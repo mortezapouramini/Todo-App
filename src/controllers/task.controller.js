@@ -154,6 +154,7 @@ const getTasks = async (req, res, session) => {
     const pagesCount = Math.ceil(userTasks.length / limit);
     const resData = {
       pagesCount,
+      currentPage : page,
       limit,
       totalTasks: userTasks.length,
       paginatedTasks,
