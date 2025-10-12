@@ -7,13 +7,17 @@ const taskRoutes = async (req, res) => {
     if (!session) return;
     taskController.addTask(req, res, session);
   } else if (req.method.toLowerCase() === "patch") {
-    // update task
+    const session = await authMiddleware.authSession(req, res);
+    if (!session) return;
+    taskController.updateTask(req, res, session);
   } else if (req.method.toLowerCase() === "delete") {
     const session = await authMiddleware.authSession(req, res);
     if (!session) return;
     taskController.deleteTask(req, res, session);
   } else if (req.method.toLowerCase() === "get") {
-    // get tasks
+    const session = await authMiddleware.authSession(req, res);
+    if (!session) return;
+    taskController.getTasks(req, res, session);
   } else {
     res.writeHead(404, { "Content-type": "text/plain" });
     return res.end("Not found");

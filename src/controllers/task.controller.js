@@ -75,7 +75,102 @@ const deleteTask = async (req, res, session) => {
   }
 };
 
+const updateTask = (req, res, session) => {
+  const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+  const taskId = parseInt(reqUrl.searchParams.get("taskId"));
+  const userId = parseInt(session.user.id);
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk.toString();
+  });
+
+  req.on("end", async () => {
+    try {
+      const data = await fs.promises.readFile(tasksDb, "utf8");
+      const tasks = JSON.parse(data);
+      const taskIndex = tasks.findIndex(
+        (t) => t.id === taskId && t.user.id === userId
+      );
+
+      if (taskIndex === -1) {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Task not found");
+        return;
+      }
+
+      const task = tasks[taskIndex];
+      const parsedBody = JSON.parse(body);
+      const updateFields = {};
+
+      if (parsedBody.name !== undefined) {
+        updateFields.name = parsedBody.name;
+      }
+      if (parsedBody.desc !== undefined && parsedBody.desc.length < 30) {
+        updateFields.desc = parsedBody.desc;
+      }
+      if (parsedBody.dueDate !== undefined) {
+        updateFields.dueDate = parsedBody.dueDate;
+      }
+      if (parsedBody.priority !== undefined) {
+        updateFields.priority = parsedBody.priority;
+      }
+      if (parsedBody.category !== undefined) {
+        updateFields.category = parsedBody.category;
+      }
+      if (typeof parsedBody.completed === "boolean") {
+        updateFields.completed = parsedBody.completed;
+      }
+
+      const updatedTask = { ...task, ...updateFields };
+      tasks[taskIndex] = updatedTask;
+
+      await fs.promises.writeFile(tasksDb, JSON.stringify(tasks, null, 2));
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(updatedTask));
+    } catch (error) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      res.end("Internal Server Error");
+      console.error(error);
+    }
+  });
+};
+
+const getTasks = async (req, res, session) => {
+  const userId = parseInt(session.user.id);
+  const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+  let page = parseInt(reqUrl.searchParams.get("page")) || 1;
+  if (page <= 0) {
+    page = 1;
+  }
+  const limit = 10;
+  try {
+    const data = await fs.promises.readFile(tasksDb, "utf8");
+    const tasks = JSON.parse(data);
+    const userTasks = tasks.filter((t) => t.user.id === userId);
+
+    const paginatedTasks = userTasks.slice((page - 1) * limit, page * limit);
+    const pagesCount = Math.ceil(userTasks.length / limit);
+    const resData = {
+      pagesCount,
+      limit,
+      totalTasks: userTasks.length,
+      paginatedTasks,
+    };
+
+    res.writeHead(200, { "Content-type": "application/json" });
+    res.end(JSON.stringify(resData));
+  } catch (error) {
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Internal Server Error");
+    console.error(error);
+  }
+};
+
 module.exports = {
   addTask,
   deleteTask,
+  updateTask,
+  getTasks
 };
