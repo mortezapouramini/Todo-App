@@ -34,8 +34,8 @@ Before running the project, make sure you have installed:
 
 ```bash
 # 1. Clone and install dependencies
-git clone https://github.com/mortezapouramini/e-commerce-platform.git
-cd e-commerce-platform
+git clone https://github.com/mortezapouramini/Todo-App.git
+cd Todo-App
 npm install
 
 # 2. Run the server
